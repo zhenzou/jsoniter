@@ -182,7 +182,7 @@ func (cfg Config) frozeWithCacheReuse(extraExtensions []Extension) *frozenConfig
 func (cfg *frozenConfig) validateJsonRawMessage(extension EncoderExtension) {
 	encoder := &funcEncoder{func(ptr unsafe.Pointer, stream *Stream) {
 		rawMessage := *(*json.RawMessage)(ptr)
-		iter := cfg.BorrowIterator([]byte(rawMessage))
+		iter := cfg.BorrowIterator(rawMessage)
 		defer cfg.ReturnIterator(iter)
 		iter.Read()
 		if iter.Error != nil && iter.Error != io.EOF {
@@ -272,14 +272,14 @@ func (cfg *frozenConfig) escapeHTML(encoderExtension EncoderExtension) {
 }
 
 func (cfg *frozenConfig) cleanDecoders() {
-	typeDecoders = map[string]ValDecoder{}
-	fieldDecoders = map[string]ValDecoder{}
+	typeDecoders = map[reflect2.Type]ValDecoder{}
+	fieldDecoders = map[fieldCodecKey]ValDecoder{}
 	*cfg = *(cfg.configBeforeFrozen.Froze().(*frozenConfig))
 }
 
 func (cfg *frozenConfig) cleanEncoders() {
-	typeEncoders = map[string]ValEncoder{}
-	fieldEncoders = map[string]ValEncoder{}
+	typeEncoders = map[reflect2.Type]ValEncoder{}
+	fieldEncoders = map[fieldCodecKey]ValEncoder{}
 	*cfg = *(cfg.configBeforeFrozen.Froze().(*frozenConfig))
 }
 

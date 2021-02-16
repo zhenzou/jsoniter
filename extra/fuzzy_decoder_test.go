@@ -3,8 +3,9 @@ package extra
 import (
 	"testing"
 
-	"github.com/json-iterator/go"
 	"github.com/stretchr/testify/require"
+
+	"github.com/json-iterator/go"
 )
 
 func init() {
@@ -25,6 +26,7 @@ func Test_any_to_string(t *testing.T) {
 	should.NotNil(jsoniter.UnmarshalFromString("{}", &val))
 	should.NotNil(jsoniter.UnmarshalFromString("[]", &val))
 }
+
 func Test_any_to_int64(t *testing.T) {
 	should := require.New(t)
 	var val int64
@@ -228,6 +230,7 @@ func Test_any_to_uint32(t *testing.T) {
 	// large float to int
 	should.NotNil(jsoniter.UnmarshalFromString(`1234512345123451234512345.0`, &val))
 }
+
 func Test_any_to_uint16(t *testing.T) {
 	should := require.New(t)
 	var val uint16
@@ -255,6 +258,7 @@ func Test_any_to_uint16(t *testing.T) {
 	// large float to int
 	should.NotNil(jsoniter.UnmarshalFromString(`1234512345123451234512345.0`, &val))
 }
+
 func Test_any_to_uint(t *testing.T) {
 	should := require.New(t)
 	var val uint

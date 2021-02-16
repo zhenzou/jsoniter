@@ -2,11 +2,12 @@ package jsoniter
 
 import (
 	"fmt"
-	"github.com/modern-go/reflect2"
 	"io"
 	"reflect"
 	"sort"
 	"unsafe"
+
+	"github.com/modern-go/reflect2"
 )
 
 func decoderOfMap(ctx *ctx, typ reflect2.Type) ValDecoder {
@@ -94,7 +95,7 @@ func decoderOfMapKey(ctx *ctx, typ reflect2.Type) ValDecoder {
 	}
 }
 
-func encoderOfMapKey(ctx *ctx, typ reflect2.Type) ValEncoder {
+func  encoderOfMapKey(ctx *ctx, typ reflect2.Type) ValEncoder {
 	encoder := ctx.encoderExtension.CreateMapKeyEncoder(typ)
 	if encoder != nil {
 		return encoder

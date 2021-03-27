@@ -360,8 +360,10 @@ func describeStruct(ctx *ctx, typ reflect2.Type) *StructDescriptor {
 				for _, binding := range structDescriptor.Fields {
 					binding.levels = append([]int{i}, binding.levels...)
 					omitempty := binding.Encoder.(*structFieldEncoder).omitempty
-					binding.Encoder = &structFieldEncoder{field, binding.Encoder, omitempty}
-					binding.Decoder = &structFieldDecoder{field, binding.Decoder}
+					notWrite := binding.Encoder.(*structFieldEncoder).ignore
+					notRead := binding.Decoder.(*structFieldDecoder).ignore
+					binding.Encoder = &structFieldEncoder{field, binding.Encoder, omitempty, notWrite}
+					binding.Decoder = &structFieldDecoder{field, binding.Decoder, notRead}
 					embeddedBindings = append(embeddedBindings, binding)
 				}
 				continue
@@ -372,10 +374,12 @@ func describeStruct(ctx *ctx, typ reflect2.Type) *StructDescriptor {
 					for _, binding := range structDescriptor.Fields {
 						binding.levels = append([]int{i}, binding.levels...)
 						omitempty := binding.Encoder.(*structFieldEncoder).omitempty
+						notWrite := binding.Encoder.(*structFieldEncoder).ignore
+						notRead := binding.Decoder.(*structFieldDecoder).ignore
 						binding.Encoder = &dereferenceEncoder{binding.Encoder}
-						binding.Encoder = &structFieldEncoder{field, binding.Encoder, omitempty}
+						binding.Encoder = &structFieldEncoder{field, binding.Encoder, omitempty, notWrite}
 						binding.Decoder = &dereferenceDecoder{ptrType.Elem(), binding.Decoder}
-						binding.Decoder = &structFieldDecoder{field, binding.Decoder}
+						binding.Decoder = &structFieldDecoder{field, binding.Decoder, notRead}
 						embeddedBindings = append(embeddedBindings, binding)
 					}
 					continue
@@ -454,11 +458,27 @@ func (bindings sortableBindings) Swap(i, j int) {
 
 func processTags(structDescriptor *StructDescriptor, cfg *frozenConfig) {
 	for _, binding := range structDescriptor.Fields {
-		shouldOmitEmpty := false
+		omitempty := false
+		read := true
+		write := true
+		hasReadTag := false
+		hasWriteTag := false
 		tagParts := strings.Split(binding.Field.Tag().Get(cfg.getTagKey()), ",")
 		for _, tagPart := range tagParts[1:] {
 			if tagPart == "omitempty" {
-				shouldOmitEmpty = true
+				omitempty = true
+			} else if tagPart == "read" {
+				read = true
+				hasReadTag = true
+				if !hasWriteTag {
+					write = false
+				}
+			} else if tagPart == "write" {
+				write = true
+				hasWriteTag = true
+				if !hasReadTag {
+					read = false
+				}
 			} else if tagPart == "string" {
 				if binding.Field.Type().Kind() == reflect.String {
 					binding.Decoder = &stringModeStringDecoder{binding.Decoder, cfg}
@@ -469,8 +489,8 @@ func processTags(structDescriptor *StructDescriptor, cfg *frozenConfig) {
 				}
 			}
 		}
-		binding.Decoder = &structFieldDecoder{binding.Field, binding.Decoder}
-		binding.Encoder = &structFieldEncoder{binding.Field, binding.Encoder, shouldOmitEmpty}
+		binding.Decoder = &structFieldDecoder{binding.Field, binding.Decoder, !read}
+		binding.Encoder = &structFieldEncoder{binding.Field, binding.Encoder, omitempty, !write}
 	}
 }
 

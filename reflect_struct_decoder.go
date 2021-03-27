@@ -1047,9 +1047,14 @@ func (decoder *tenFieldsStructDecoder) Decode(ptr unsafe.Pointer, iter *Iterator
 type structFieldDecoder struct {
 	field        reflect2.StructField
 	fieldDecoder ValDecoder
+	ignore       bool
 }
 
 func (decoder *structFieldDecoder) Decode(ptr unsafe.Pointer, iter *Iterator) {
+	if decoder.ignore {
+		iter.Skip()
+		return
+	}
 	fieldPtr := decoder.field.UnsafeGet(ptr)
 	decoder.fieldDecoder.Decode(fieldPtr, iter)
 	if iter.Error != nil && iter.Error != io.EOF {

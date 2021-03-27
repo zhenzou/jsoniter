@@ -95,7 +95,7 @@ func decoderOfMapKey(ctx *ctx, typ reflect2.Type) ValDecoder {
 	}
 }
 
-func  encoderOfMapKey(ctx *ctx, typ reflect2.Type) ValEncoder {
+func encoderOfMapKey(ctx *ctx, typ reflect2.Type) ValEncoder {
 	encoder := ctx.encoderExtension.CreateMapKeyEncoder(typ)
 	if encoder != nil {
 		return encoder
@@ -112,7 +112,8 @@ func  encoderOfMapKey(ctx *ctx, typ reflect2.Type) ValEncoder {
 			stringEncoder: ctx.EncoderOf(reflect2.TypeOf("")),
 		}
 	}
-	if typ.Implements(textMarshalerType) {
+	// https://github.com/golang/go/issues/38940 if type is string, use string directly
+	if typ.Kind() != reflect.String && typ.Implements(textMarshalerType) {
 		return &textMarshalerEncoder{
 			valType:       typ,
 			stringEncoder: ctx.EncoderOf(reflect2.TypeOf("")),

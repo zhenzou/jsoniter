@@ -42,8 +42,8 @@ jobs:
       - run: |
           export GOBIN=$HOME/go/bin
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | bash -s -- -b $GOBIN latest
-          go install github.com/kyoh86/richgo
-          go install github.com/mitchellh/gox
+          go get -u github.com/kyoh86/richgo
+          go get -u github.com/mitchellh/gox
       - run: PATH=$HOME/go/bin/:$PATH make
 
 
@@ -78,6 +78,6 @@ jobs:
       - run: |
           export GOBIN=$HOME/go/bin
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | bash -s -- -b $GOBIN latest
-          go install github.com/kyoh86/richgo
-          go install github.com/mitchellh/gox
+          go get -u github.com/kyoh86/richgo
+          go get -u github.com/mitchellh/gox
       - run: PATH=$HOME/go/bin:$PATH make

@@ -2,6 +2,7 @@ package test
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"testing"
@@ -15,7 +16,6 @@ import (
 )
 
 func Test_customize_type_decoder(t *testing.T) {
-	t.Skip()
 	jsoniter.RegisterTypeDecoderFunc(reflect2.TypeOf(time.Time{}), func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 		t, err := time.ParseInLocation("2006-01-02 15:04:05", iter.ReadString(), time.UTC)
 		if err != nil {
@@ -37,7 +37,6 @@ func Test_customize_type_decoder(t *testing.T) {
 }
 
 func Test_customize_byte_array_encoder(t *testing.T) {
-	t.Skip()
 	//jsoniter.ConfigDefault.(*frozenConfig).cleanEncoders()
 	should := require.New(t)
 	jsoniter.RegisterTypeEncoderFunc(reflect2.TypeOf([]uint8{}), func(ptr unsafe.Pointer, stream *jsoniter.Stream) {
@@ -99,9 +98,8 @@ func Test_customize_field_decoder(t *testing.T) {
 }
 
 func Test_recursive_empty_interface_customization(t *testing.T) {
-	t.Skip()
 	var obj interface{}
-	jsoniter.RegisterTypeDecoderFunc(reflect2.TypeOf(obj), func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
+	jsoniter.RegisterTypeDecoderFunc(reflect2.TypeOf(&obj).(*reflect2.UnsafePtrType).Elem(), func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 		switch iter.WhatIsNext() {
 		case jsoniter.NumberValue:
 			*(*interface{})(ptr) = iter.ReadInt64()
@@ -110,8 +108,14 @@ func Test_recursive_empty_interface_customization(t *testing.T) {
 		}
 	})
 	should := require.New(t)
-	jsoniter.Unmarshal([]byte("[100]"), &obj)
+	should.NoError(jsoniter.Unmarshal([]byte("[100]"), &obj))
 	should.Equal([]interface{}{int64(100)}, obj)
+
+	var obj2 interface{}
+
+	should.NoError(json.Unmarshal([]byte("[100]"), &obj2))
+
+	should.Equal([]interface{}{float64(100)}, obj2)
 }
 
 type MyInterface interface {
@@ -125,10 +129,9 @@ func (ms MyString) Hello() string {
 }
 
 func Test_read_custom_interface(t *testing.T) {
-	t.Skip()
 	should := require.New(t)
 	var val MyInterface
-	jsoniter.RegisterTypeDecoderFunc(reflect2.TypeOf(val), func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
+	jsoniter.RegisterTypeDecoderFunc(reflect2.TypeOf(&val).(*reflect2.UnsafePtrType).Elem(), func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 		*((*MyInterface)(ptr)) = MyString(iter.ReadString())
 	})
 	err := jsoniter.UnmarshalFromString(`"hello"`, &val)

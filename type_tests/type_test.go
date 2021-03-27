@@ -22,7 +22,6 @@ type selectedSymmetricCase struct {
 }
 
 func Test_symmetric(t *testing.T) {
-	t.SkipNow() // for now , std json does not support TextMarshaler
 	for _, testCase := range testCases {
 		selectedSymmetricCase, found := testCase.(selectedSymmetricCase)
 		if found {

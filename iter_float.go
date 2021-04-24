@@ -159,7 +159,7 @@ non_decimal_loop:
 func (iter *Iterator) readNumberAsString() (ret string) {
 	strBuf := [16]byte{}
 	str := strBuf[0:0]
-load_loop:
+loadLoop:
 	for {
 		for i := iter.head; i < iter.tail; i++ {
 			c := iter.buf[i]
@@ -169,7 +169,7 @@ load_loop:
 				continue
 			default:
 				iter.head = i
-				break load_loop
+				break loadLoop
 			}
 		}
 		if !iter.loadMore() {
@@ -244,7 +244,7 @@ func (iter *Iterator) readPositiveFloat64() (ret float64) {
 	}
 	value := uint64(ind)
 	// chars before dot
-non_decimal_loop:
+nonDecimalLoop:
 	for ; i < iter.tail; i++ {
 		c = iter.buf[i]
 		ind := floatDigits[c]
@@ -255,7 +255,7 @@ non_decimal_loop:
 			iter.head = i
 			return float64(value)
 		case dotInNumber:
-			break non_decimal_loop
+			break nonDecimalLoop
 		}
 		if value > uint64SafeToMultiple10 {
 			return iter.readFloat64SlowPath()

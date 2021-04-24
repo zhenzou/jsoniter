@@ -77,6 +77,7 @@ type Iterator struct {
 	depth            int
 	captureStartedAt int
 	captured         []byte
+	backup           []byte
 	Error            error
 	Attachment       interface{} // open for customized decoder
 }
@@ -257,25 +258,37 @@ func (iter *Iterator) loadMore() bool {
 		}
 		return false
 	}
+
 	if iter.captured != nil {
-		iter.captured = append(iter.captured,
-			iter.buf[iter.captureStartedAt:iter.tail]...)
-		iter.captureStartedAt = 0
+		iter.doBackup()
 	}
+
 	for {
 		n, err := iter.reader.Read(iter.buf)
+
 		if n == 0 {
 			if err != nil {
+				// if EOF set head = tail, just like when iter.reader ==nil
+				if err == io.EOF {
+					iter.head = iter.tail
+				}
 				if iter.Error == nil {
 					iter.Error = err
 				}
 				return false
 			}
-		} else {
-			iter.head = 0
-			iter.tail = n
-			return true
+			continue
 		}
+
+		// to avoid capture duplicated buf, only capture buf when load more success
+		if iter.captured != nil {
+			iter.captured = append(iter.captured, iter.backup...)
+			iter.captureStartedAt = 0
+		}
+
+		iter.head = 0
+		iter.tail = n
+		return true
 	}
 }
 
@@ -346,4 +359,19 @@ func (iter *Iterator) decrementDepth() (success bool) {
 	}
 	iter.ReportError("decrementDepth", "unexpected negative nesting")
 	return false
+}
+
+func (iter *Iterator) doBackup() {
+	if iter.backup == nil {
+		iter.backup = copyBytes(iter.buf, iter.captureStartedAt, iter.tail)
+	} else {
+		iter.backup = iter.backup[0:0]
+		iter.backup = append(iter.backup, iter.buf[iter.captureStartedAt:iter.tail]...)
+	}
+}
+
+func copyBytes(src []byte, start, offset int) []byte {
+	dst := make([]byte, offset-start)
+	copy(dst, src[start:offset])
+	return dst
 }

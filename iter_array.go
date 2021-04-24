@@ -1,7 +1,7 @@
 package jsoniter
 
 // ReadArray read array element, tells if the array has more element to read.
-func (iter *Iterator) ReadArray() (ret bool) {
+func (iter *Iterator) ReadArray() bool {
 	c := iter.nextToken()
 	switch c {
 	case 'n':
@@ -20,7 +20,7 @@ func (iter *Iterator) ReadArray() (ret bool) {
 		return true
 	default:
 		iter.ReportError("ReadArray", "expect [ or , or ] or n, but found "+string([]byte{c}))
-		return
+		return false
 	}
 }
 

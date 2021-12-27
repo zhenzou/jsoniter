@@ -54,6 +54,10 @@ func NewDecoder(reader io.Reader) *Decoder {
 	return ConfigDefault.NewDecoder(reader)
 }
 
+func NewDecoderWithIter(iter *Iterator) *Decoder {
+	return &Decoder{iter: iter}
+}
+
 // Decoder reads and decodes JSON values from an input stream.
 // Decoder provides identical APIs with json/stream Decoder (Token() and UseNumber() are in progress)
 type Decoder struct {

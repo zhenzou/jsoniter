@@ -62,10 +62,10 @@ func (iter *Iterator) stopCapture() []byte {
 		panic("not in capture mode")
 	}
 	captured := iter.captured
-	remaining := iter.buf[iter.captureStartedAt:iter.head]
+	captured = append(captured, iter.buf[iter.captureStartedAt:iter.head]...)
 	iter.captureStartedAt = -1
 	iter.captured = nil
-	return append(captured, remaining...)
+	return captured
 }
 
 // Skip skips a json object and positions to relatively the next json object

@@ -3,6 +3,7 @@ package test
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -66,10 +67,23 @@ func Test_decoder_more(t *testing.T) {
 }
 
 func Test_decoder_raw(t *testing.T) {
-	decoder := jsoniter.NewDecoder(strings.NewReader("-1"))
+
+	var newDecoder = func(reader io.Reader) *jsoniter.Decoder {
+		iter := jsoniter.Parse(jsoniter.ConfigDefault, reader, 1)
+		return jsoniter.NewDecoderWithIter(iter)
+	}
+
+	decoder := newDecoder(strings.NewReader("-1"))
 	raw := json.RawMessage{}
 	err := decoder.Decode(&raw)
 
 	require.NoError(t, err)
 	require.Equal(t, "-1", string(raw))
+
+	decoder = newDecoder(strings.NewReader("-12345678901234"))
+	raw = json.RawMessage{}
+	err = decoder.Decode(&raw)
+
+	require.NoError(t, err)
+	require.Equal(t, "-12345678901234", string(raw))
 }

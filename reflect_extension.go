@@ -1,10 +1,10 @@
 package jsoniter
 
 import (
+	"go/ast"
 	"reflect"
 	"sort"
 	"strings"
-	"unicode"
 	"unsafe"
 
 	"github.com/modern-go/reflect2"
@@ -487,7 +487,7 @@ func calcFieldNames(originalFieldName string, tagProvidedFieldName string, whole
 		fieldNames = []string{tagProvidedFieldName}
 	}
 	// private?
-	isNotExported := unicode.IsLower(rune(originalFieldName[0])) || originalFieldName[0] == '_'
+	isNotExported := !ast.IsExported(originalFieldName)
 	if isNotExported {
 		fieldNames = []string{}
 	}

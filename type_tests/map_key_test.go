@@ -1,7 +1,3 @@
-// +build go1.15
-// remove these tests temporarily until https://github.com/golang/go/issues/38105 and
-// https://github.com/golang/go/issues/38940 is fixed
-
 package test
 
 import (
